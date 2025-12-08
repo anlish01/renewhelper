@@ -2144,13 +2144,6 @@ const HTML = `<!DOCTYPE html>
 
                     const l = localStorage.getItem('lang'); if(l) setLang(l);
                     const tk = localStorage.getItem('jwt_token'); if(tk) fetchList(tk);
-
-                  // A. 页面可见性监听：当用户切换回此标签页时，自动刷新
-                  document.addEventListener("visibilitychange", () => {
-                      if (document.visibilityState === 'visible' && isLoggedIn.value) {
-                          fetchList(); // 不传 token 会自动从 localStorage 取
-                      }
-                  });
                     
                 });
 
@@ -2474,3 +2467,4 @@ const HTML = `<!DOCTYPE html>
     </script>
 </body>
 </html>`;
+
