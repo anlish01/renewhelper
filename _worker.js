@@ -16,9 +16,11 @@
  * modified: fix manual renew v2.0.1
  * added: add manual renew history v2.0.2
  * modified: fix renewDialogVisible logic v2.0.3
+ * added: add exchange rate v2.0.4
  */
 
-const APP_VERSION = "v2.0.3";
+const APP_VERSION = "v2.0.4";
+//接入免费汇率API
 const EXCHANGE_RATE_API_URL = 'https://api.frankfurter.dev/v1/latest?base=';
 // ==========================================
 // 1. Core Logic (Lunar & Calc)
@@ -3231,12 +3233,26 @@ const HTML = `<!DOCTYPE html>
 
                 const fetchExchangeRates = async (baseCurrency) => {
                     if (!baseCurrency) baseCurrency = 'CNY';
+                    const cacheKey = 'renew_ex_rates_' + baseCurrency;
+                    try {
+                        const cached = localStorage.getItem(cacheKey);
+                        if (cached) {
+                            const p = JSON.parse(cached);
+                            if (Date.now() - p.ts < 86400000) { // 24 hours cache
+                                exchangeRates.value = p.data;
+                                return;
+                            }
+                        }
+                    } catch(e){}
+
                     ratesLoading.value = true;
                     try {
                         const res = await fetch('${EXCHANGE_RATE_API_URL}'+baseCurrency);
                         if (res.ok) {
                             const data = await res.json();
-                            exchangeRates.value = { ...data.rates, [baseCurrency]: 1 };
+                            const rates = { ...data.rates, [baseCurrency]: 1 };
+                            exchangeRates.value = rates;
+                            localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: rates }));
                         }
                     } catch (e) { console.error('Failed to fetch exchange rates:', e); }
                     ratesLoading.value = false;
